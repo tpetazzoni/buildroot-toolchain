@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# This tool creates two Debian chroots, one i386 and one amd64. It
+# installs the strict minimum needed to build a Buildroot toolchain,
+# and creates a tarball of both chroots. It obviously requires sudo
+# access.
+
+run() {
+    sudo chroot chroot-${arch} sh -c "$*"
+}
+
+for arch in i386 amd64 ; do
+    mkdir -p chroot-${arch} || exit 1
+    # Create the initial chroot
+    sudo debootstrap --arch=${arch} --variant=buildd \
+	 --include=git,wget,cpio,python,unzip,bc,locales \
+	 squeeze chroot-${arch} \
+	 http://ftp.free.fr/mirrors/ftp.debian.org/ || exit 1
+    # Cleanup useless stuff
+    run apt-get clean
+    run rm -rf /usr/share/locale /usr/share/doc
+    # Generate one UTF-8 locale, needed for Buildroot to build a
+    # locale capable toolchain
+    run 'echo "en_US.UTF-8 UTF-8" > /etc/locale.gen'
+    run locale-gen
+    # Add the user that will build the toolchain
+    run useradd -d /build -m -s /bin/bash build
+    # Generate the chroot tarball
+    sudo tar cJf chroot-${arch}.tar.xz chroot-${arch}
+done

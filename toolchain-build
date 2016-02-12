@@ -1,0 +1,29 @@
+#!/bin/bash
+
+HOSTARCH=$1
+CHROOT=chroot-${HOSTARCH}
+REPO=git://git.busybox.net/buildroot
+REVISION=bb1324288a38f30d42190b9d8b254ef084a3691c
+
+run() {
+    sudo chroot ${CHROOT} su - build -c "$*"
+}
+
+cat > .config <<EOF
+BR2_arm=y
+BR2_TOOLCHAIN_BUILDROOT_CXX=y
+BR2_INIT_NONE=y
+# BR2_PACKAGE_BUSYBOX is not set
+# BR2_TARGET_ROOTFS_TAR is not set
+EOF
+
+wget http://free-electrons.com/~thomas/${CHROOT}.tar.xz
+sudo tar xf ${CHROOT}.tar.xz
+run rm -rf /build/buildroot/
+run git clone ${REPO}
+run git checkout ${REVISION}
+run rm -rf /build/toolchain
+run mkdir /build/toolchain
+sudo cp .config ${CHROOT}/build/toolchain
+run make -C /build/buildroot O=/build/toolchain olddefconfig
+run make -C /build/buildroot O=/build/toolchain
