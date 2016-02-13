@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TOOLCHAIN_FILE=toolchains
+
+cat ${TOOLCHAIN_FILE} | while read l ; do
+    if [[ ${l} =~ ^# ]] ; then
+	continue
+    fi
+
+    if [[ "${l}" == "" ]] ; then
+	continue
+    fi
+
+    echo ${l} | cut -f1 -d' '
+done

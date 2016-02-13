@@ -1,29 +1,81 @@
 #!/bin/bash
 
 HOSTARCH=$1
+CONFIG=$2
 CHROOT=chroot-${HOSTARCH}
 REPO=git://git.buildroot.net/buildroot
 REVISION=bb1324288a38f30d42190b9d8b254ef084a3691c
+VERSION=2016.02-1
+BUILDROOT_SRCDIR=/build/buildroot
+BUILDROOT_OUTPUT=/build/output-${CONFIG}-${VERSION}
+TOOLCHAIN=/build/${CONFIG}-${VERSION}
 
 run() {
-    sudo chroot ${CHROOT} su - build -c "$*"
+    if [[ ${HOSTARCH} == i386 ]] ; then
+	sudo setarch linux32 chroot ${CHROOT} su - build -c "$*"
+    else
+	sudo setarch linux64 chroot ${CHROOT} su - build -c "$*"
+    fi
 }
 
-cat > .config <<EOF
-BR2_arm=y
-BR2_TOOLCHAIN_BUILDROOT_CXX=y
-BR2_INIT_NONE=y
-# BR2_PACKAGE_BUSYBOX is not set
-# BR2_TARGET_ROOTFS_TAR is not set
-EOF
+# Get and prepare the chroot
+chroot_prepare() {
+    echo "=== Preparing chroot"
+    test -f ${CHROOT}.tar.xz || \
+	wget http://free-electrons.com/~thomas/${CHROOT}.tar.xz
+    sudo tar xf ${CHROOT}.tar.xz
+}
 
-wget http://free-electrons.com/~thomas/${CHROOT}.tar.xz
-sudo tar xf ${CHROOT}.tar.xz
-run rm -rf /build/buildroot/
-run git clone ${REPO}
-run git checkout ${REVISION}
-run rm -rf /build/toolchain
-run mkdir /build/toolchain
-sudo cp .config ${CHROOT}/build/toolchain
-run make -C /build/buildroot O=/build/toolchain olddefconfig
-run make -C /build/buildroot O=/build/toolchain
+# Grab Buildroot sources
+buildroot_src_prepare() {
+    echo "=== Preparing Buildroot sources"
+    run rm -rf ${BUILDROOT_SRCDIR}
+    run git clone ${REPO}
+    run git --work-tree=${BUILDROOT_SRCDIR} --git-dir=${BUILDROOT_SRCDIR}/.git checkout ${REVISION}
+}
+
+output_prepare() {
+    echo "=== Preparing output directories"
+    run rm -rf ${BUILDROOT_OUTPUT} ${TOOLCHAIN}
+    run mkdir -p ${BUILDROOT_OUTPUT} ${TOOLCHAIN}
+}
+
+genconfig() {
+    echo "=== Generating configuration"
+    ./toolchain-gen-config ${CONFIG} > buildroot.config
+    echo "BR2_HOST_DIR=\"${TOOLCHAIN}\"/" >> buildroot.config
+    sudo mv buildroot.config ${CHROOT}/${BUILDROOT_OUTPUT}/.config
+    run make -C ${BUILDROOT_SRCDIR} O=${BUILDROOT_OUTPUT} olddefconfig
+}
+
+build() {
+    echo "=== Building"
+    while true ; do echo "Still building" ; sleep 60 ; done &
+    stupidpid=$!
+    run make -C ${BUILDROOT_SRCDIR} O=${BUILDROOT_OUTPUT} > >(tee build.log |grep '>>>') 2>&1
+    kill ${stupidpid}
+    tail -1000 build.log
+}
+
+package() {
+    echo "=== Packaging"
+    run mv ${TOOLCHAIN}/usr/* ${TOOLCHAIN}
+    run rmdir ${TOOLCHAIN}/usr
+    run "(cd /build/; tar cJf ${CONFIG}-${VERSION}.tar.xz ${CONFIG}-${VERSION})"
+}
+
+upload() {
+    echo "=== Uploading"
+}
+
+main() {
+    chroot_prepare
+    buildroot_src_prepare
+    output_prepare
+    genconfig
+    build
+    package
+    upload
+}
+
+main

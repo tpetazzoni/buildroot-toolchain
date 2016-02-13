@@ -1,4 +1,9 @@
 sudo: required
 dist: trusty
+env:
+  matrix:
+   - TOOLCHAIN_CONFIG=armv5-musl-new
+   - TOOLCHAIN_CONFIG=armv7hf-glibc
+   - TOOLCHAIN_CONFIG=aarch64-glibc-new
 script:
-- ./toolchain-build i386
+- ./toolchain-build i386 ${TOOLCHAIN_CONFIG}

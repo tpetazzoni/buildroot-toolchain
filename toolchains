@@ -1,0 +1,66 @@
+#	name			arch	variant		abi	libc	gcc	binutils	headers
+
+# ARC
+
+# ARMv5 soft-float
+
+	armv5-uclibc		arm	arm926t		eabi	uclibc	4.9	2.24		3.2
+	armv5-uclibc-new	arm	arm926t		eabi	uclibc	5	2.25		3.10
+	armv5-glibc		arm	arm926t		eabi	glibc	4.9	2.24		3.2
+	armv5-glibc-new		arm	arm926t		eabi	glibc	5	2.25		3.10
+	armv5-musl		arm	arm926t		eabi	musl	4.9	2.24		3.2
+	armv5-musl-new		arm	arm926t		eabi	musl	5	2.25		3.10
+
+# ARMv6 hard-float
+
+	armv6hf-uclibc		arm	arm1136j_s	eabihf	uclibc	4.9	2.24		3.2
+	armv6hf-uclibc-new	arm	arm1136j_s	eabihf	uclibc	5	2.25		3.10
+	armv6hf-glibc		arm	arm1136j_s	eabihf	glibc	4.9	2.24		3.2
+	armv6hf-glibc-new	arm	arm1136j_s	eabihf	glibc	5	2.25		3.10
+	armv6hf-musl		arm	arm1136j_s	eabihf	musl	4.9	2.24		3.2
+	armv6hf-musl-new	arm	arm1136j_s	eabihf	musl	5	2.25		3.10
+
+# ARMv7 hard-float
+
+	armv7hf-uclibc		arm	cortex_a8	eabihf	uclibc	4.9	2.24		3.2
+	armv7hf-uclibc-new	arm	cortex_a8	eabihf	uclibc	5	2.25		3.10
+	armv7hf-glibc		arm	cortex_a8	eabihf	glibc	4.9	2.24		3.2
+	armv7hf-glibc-new	arm	cortex_a8	eabihf	glibc	5	2.25		3.10
+	armv7hf-musl		arm	cortex_a8	eabihf	musl	4.9	2.24		3.2
+	armv7hf-musl-new	arm	cortex_a8	eabihf	musl	5	2.25		3.10
+
+# AArch64
+
+	aarch64-glibc		aarch64	-		-	glibc	4.9	2.24		3.10
+	aarch64-glibc-new	aarch64	-		-	glibc	5	2.25		4.1
+
+# i386
+
+# Microblaze
+
+# MIPS
+
+# MIPS64
+
+# NIOSII
+
+# PowerPC
+
+# PowerPC64
+
+# SuperH
+
+# Sparc
+
+# Sparc64
+
+# x86_64
+
+	x86_64-core2-uclibc	x86_64	core2		-	uclibc	4.9	2.24
+	x86_64-core2-uclibc-new	x86_64	core2		-	uclibc	5	2.25
+	x86_64-core2-glibc	x86_64	core2		-	glibc	4.9	2.24
+	x86_64-core2-glibc-new	x86_64	core2		-	glibc	5	2.25
+	x86_64-core2-musl	x86_64	core2		-	musl	4.9	2.24
+	x86_64-core2-musl-new	x86_64	core2		-	musl	5	2.25
+
+# Xtensa

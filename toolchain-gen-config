@@ -1,0 +1,85 @@
+#!/bin/bash
+
+TOOLCHAIN_FILE=toolchains
+
+findconfig() {
+    while read l ; do
+	if [[ ${l} =~ ^# ]] ; then
+	    continue
+	fi
+
+	if [[ "${l}" == "" ]] ; then
+	    continue
+	fi
+
+	name=$(echo ${l} | cut -f1 -d' ')
+
+	if [[ "${name}" == "$1" ]] ; then
+	    echo ${l}
+	    return 0
+	fi
+    done < ${TOOLCHAIN_FILE}
+    return 1
+}
+
+genconfig() {
+    echo "BR2_${arch}=y"
+    # Variant
+    if [[ ${variant} != "-" ]] ; then
+	echo "BR2_${variant}=y"
+    fi
+    # ABI
+    if [[ ${arch} == "arm" ]] ; then
+	if [[ ${abi} == "eabi" ]] ; then
+	    echo "BR2_ARM_EABI=y"
+	elif [[ ${abi} == "eabihf" ]] ; then
+	    echo "BR2_ARM_EABIHF=y"
+	fi
+    fi
+    # libc
+    if [[ ${libc} == "uclibc" ]] ; then
+	echo "BR2_TOOLCHAIN_BUILDROOT_UCLIBC=y"
+	echo "BR2_TOOLCHAIN_BUILDROOT_INET_RPC=y"
+	echo "BR2_TOOLCHAIN_BUILDROOT_WCHAR=y"
+	echo "BR2_TOOLCHAIN_BUILDROOT_LOCALE=y"
+	echo "BR2_PTHREAD_DEBUG=y"
+    elif [[ ${libc} == "glibc" ]] ; then
+	echo "BR2_TOOLCHAIN_BUILDROOT_GLIBC=y"
+    elif [[ ${libc} == "musl" ]] ; then
+	echo "BR2_TOOLCHAIN_BUILDROOT_MUSL=y"
+    fi
+    # Always enable C++ support
+    echo "BR2_TOOLCHAIN_BUILDROOT_CXX=y"
+    # gcc version
+    echo "BR2_GCC_VERSION_$(echo ${gcc} | sed 's/\./_/')_X=y"
+    # binutils version
+    echo "BR2_BINUTILS_VERSION_$(echo ${binutils} | sed 's/\./_/')_X=y"
+    # kernel headers version
+    echo "BR2_KERNEL_HEADERS_$(echo ${headers} | sed 's/\./_/')=y"
+
+    # Build only the toolchain
+    echo "BR2_INIT_NONE=y"
+    echo "# BR2_PACKAGE_BUSYBOX is not set"
+    echo "# BR2_TARGET_ROOTFS_TAR is not set"
+}
+
+main() {
+    conf=$(findconfig $1)
+    if [[ $? -ne 0 ]] ; then
+	echo "Cannot find toolchain configuration"
+	exit 1
+    fi
+
+    name=$(echo ${conf} | cut -f1 -d' ')
+    arch=$(echo ${conf} | cut -f2 -d' ')
+    variant=$(echo ${conf} | cut -f3 -d' ')
+    abi=$(echo ${conf} | cut -f4 -d' ')
+    libc=$(echo ${conf} | cut -f5 -d' ')
+    gcc=$(echo ${conf} | cut -f6 -d' ')
+    binutils=$(echo ${conf} | cut -f7 -d' ')
+    headers=$(echo ${conf} | cut -f8 -d' ')
+
+    genconfig
+}
+
+main $*
