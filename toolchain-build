@@ -2,7 +2,7 @@
 
 HOSTARCH=$1
 CHROOT=chroot-${HOSTARCH}
-REPO=git://git.busybox.net/buildroot
+REPO=git://git.buildroot.net/buildroot
 REVISION=bb1324288a38f30d42190b9d8b254ef084a3691c
 
 run() {
